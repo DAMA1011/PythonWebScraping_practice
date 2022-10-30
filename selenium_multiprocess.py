@@ -21,30 +21,40 @@ def browser():
         service = Service(ChromeDriverManager().install())
     )     
     return my_driver
- 
+
+def booknames():
+    my_driver = browser()
+    my_driver.get("https://www.gutenberg.org/browse/languages/zh")
+    
+    aFirstLinks = my_driver.find_elements(By.CSS_SELECTOR, 'div.pgdbbylanguage li.pgdbetext a')
+    for a in aFirstLinks:
+        regex = r'\b[\u4E00-\u9FFF]+.*\b'
+        bookname = re.match(regex, a.get_attribute('innerText'))
+        if bookname != None:
+            list_book.append(a.get_attribute('innerText'))
+    print(len(list_book))
+
+
 def test_func(link):
     my_driver = browser()  # Each browser use different driver.
     my_driver.get(link)
-
 
     ac = ActionChains(my_driver)
     for i in range(100):
         target = my_driver.find_elements(By.CSS_SELECTOR, 'div.pgdbbylanguage li.pgdbetext a')
         ac.move_to_element(target[i]).click()
         ac.perform()
-
         my_driver.get(link)
 
-    # aFirstLinks = my_driver.find_elements(By.CSS_SELECTOR, 'div.pgdbbylanguage li.pgdbetext a')
-    # for a in aFirstLinks:
-    #     regex = r'\b[\u4E00-\u9FFF]+.*\b'
-    #     bookname = re.match(regex, a.get_attribute('innerText'))
-    #     if bookname != None:
-    #         list_book.append(a.get_attribute('innerText'))
+    part = len(list_book) // 4
+    list_part = [list_book[i:i + part] for i in range(0, len(list_book), part)]
+
+
+
 
 def multip():
-    links = ["https://www.gutenberg.org/browse/languages/zh", "https://www.gutenberg.org/browse/languages/zh", "https://www.gutenberg.org/browse/languages/zh"]
-    my_pool = Pool(processes=3)
+    links = ["https://www.gutenberg.org/browse/languages/zh", "https://www.gutenberg.org/browse/languages/zh", "https://www.gutenberg.org/browse/languages/zh", "https://www.gutenberg.org/browse/languages/zh"]
+    my_pool = Pool(processes=4)
     for i in range(0, len(links)):  
         my_pool.apply_async(test_func, args={links[i]})
 
@@ -52,4 +62,5 @@ def multip():
     my_pool.join()
     
 if __name__ == '__main__':
-    multip()
+    booknames()
+    # multip()
